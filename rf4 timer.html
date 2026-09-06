@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Таймер Русская Рыбалка 4</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #0d1b2a 0%, #1b3a4b 50%, #12242e 100%);
+    color: #eaf4f4;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    color: #7fd8e8;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #9fbdc4;
+    margin-bottom: 20px;
+  }
+  .box {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(127, 216, 232, 0.25);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .box h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7fd8e8;
+    margin: 0 0 12px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #b8d4d9;
+    margin-bottom: 6px;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(127,216,232,0.3);
+    background: rgba(0,0,0,0.25);
+    color: #eaf4f4;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  input[type="number"]:focus { outline: 2px solid #7fd8e8; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.2s ease;
+  }
+  button:active { transform: scale(0.97); }
+  .btn-primary {
+    background: #7fd8e8;
+    color: #0d1b2a;
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(127,216,232,0.4);
+    color: #7fd8e8;
+    margin-top: 8px;
+  }
+  .btn-row { display:flex; gap:10px; margin-top: 8px;}
+  .btn-row button { flex:1; margin-top:0; }
+  .result {
+    font-size: 15px;
+    color: #cfeef4;
+    line-height: 1.5;
+  }
+  .result strong { color: #7fd8e8; font-size: 17px; }
+  .timer-display {
+    text-align: center;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #7fd8e8;
+    margin: 10px 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-sub {
+    text-align: center;
+    font-size: 13px;
+    color: #9fbdc4;
+    margin-bottom: 14px;
+  }
+  .progress-wrap {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #7fd8e8, #3fa9c4);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .done {
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { color: #7fd8e8; }
+    50% { color: #ff8a65; }
+  }
+  .status {
+    text-align: center;
+    font-size: 13px;
+    color: #9fbdc4;
+    min-height: 18px;
+    margin-bottom: 4px;
+  }
+  .formula {
+    font-size: 12px;
+    color: #7fa8b0;
+    text-align: center;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🎣 Таймер РР4</h1>
+  <div class="subtitle">6 часов и.в. × 2,5 минуты = 15 минут р.в.</div>
+
+  <div class="box">
+    <h2>Ввод</h2>
+    <label for="gameHours">Игровое время (часы)</label>
+    <input type="number" id="gameHours" step="0.1" min="0" value="6" oninput="calc()">
+
+    <div class="row">
+      <div>
+        <label>= Минут реального времени</label>
+        <input type="number" id="realMinutes" step="0.01" readonly>
+      </div>
+      <div>
+        <label>= Часов реального времени</label>
+        <input type="number" id="realHours" step="0.01" readonly>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="startTimer()">Запустить таймер</button>
+  </div>
+
+  <div class="box" id="timerBox" style="display:none;">
+    <h2>Обратный отсчёт</h2>
+    <div class="timer-display" id="display">00:00</div>
+    <div class="timer-sub" id="displaySub"></div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="status" id="status"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="pauseBtn" onclick="togglePause()">Пауза</button>
+      <button class="btn-secondary" onclick="resetTimer()">Сброс</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Игровые часы (по реальному времени Киева)</h2>
+    <div class="timer-sub" style="margin-bottom:6px;">Реальное время (Киев)</div>
+    <div class="timer-display" id="kyivDisplay" style="font-size:34px;">--:--:--</div>
+    <div class="timer-sub" style="margin:14px 0 6px;">Игровое время</div>
+    <div class="timer-display" id="clockDisplay">--:--:--</div>
+  </div>
+
+  <div class="formula">
+    Формула: реальные минуты = игровые часы × 2,5<br>
+    (т.е. 1 игровой час ≈ 2,5 минуты реального времени → 1 реальная минута ≈ 24 игровые минуты)<br>
+    Игровое время = (время суток в Киеве) × 24, по модулю 24 часа
+  </div>
+</div>
+
+<script>
+const RATE = 2.5; // минут реального времени за 1 игровой час
+
+let totalSeconds = 0;
+let remainingSeconds = 0;
+let intervalId = null;
+let paused = false;
+
+function calc() {
+  const hours = parseFloat(document.getElementById('gameHours').value) || 0;
+  const realMin = hours * RATE;
+  const realHrs = realMin / 60;
+  document.getElementById('realMinutes').value = realMin.toFixed(2);
+  document.getElementById('realHours').value = realHrs.toFixed(3);
+}
+
+function formatTime(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) {
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function startTimer() {
+  const hours = parseFloat(document.getElementById('gameHours').value) || 0;
+  if (hours <= 0) return;
+  const realMin = hours * RATE;
+  totalSeconds = Math.round(realMin * 60);
+  remainingSeconds = totalSeconds;
+  paused = false;
+
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('displaySub').textContent = hours + ' ч. игрового времени';
+  document.getElementById('pauseBtn').textContent = 'Пауза';
+  document.getElementById('display').classList.remove('done');
+  document.getElementById('status').textContent = '';
+  updateDisplay();
+
+  clearInterval(intervalId);
+  intervalId = setInterval(tick, 1000);
+}
+
+function tick() {
+  if (paused) return;
+  remainingSeconds -= 1;
+  if (remainingSeconds <= 0) {
+    remainingSeconds = 0;
+    updateDisplay();
+    clearInterval(intervalId);
+    document.getElementById('display').classList.add('done');
+    document.getElementById('status').textContent = '✅ Время вышло!';
+    return;
+  }
+  updateDisplay();
+}
+
+function updateDisplay() {
+  document.getElementById('display').textContent = formatTime(remainingSeconds);
+  const pct = totalSeconds > 0 ? ((totalSeconds - remainingSeconds) / totalSeconds) * 100 : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? 'Продолжить' : 'Пауза';
+  document.getElementById('status').textContent = paused ? '⏸ Пауза' : '';
+}
+
+function resetTimer() {
+  clearInterval(intervalId);
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('display').classList.remove('done');
+}
+
+calc();
+
+// ---- Игровые часы на основе реального времени Киева ----
+const GAME_SPEED = 60 / RATE; // игровых секунд за 1 реальную секунду (=24)
+
+function getKyivSecondsSinceMidnight() {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Kyiv',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(now);
+  const get = (type) => parseInt(parts.find(p => p.type === type).value, 10);
+  const h = get('hour') % 24;
+  const m = get('minute');
+  const s = get('second');
+  return h * 3600 + m * 60 + s;
+}
+
+function formatGameClock(totalSec) {
+  totalSec = Math.floor(totalSec) % 86400;
+  if (totalSec < 0) totalSec += 86400;
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function updateKyivClock() {
+  const kyivSec = getKyivSecondsSinceMidnight();
+  const gameSec = kyivSec * GAME_SPEED;
+  document.getElementById('kyivDisplay').textContent = formatGameClock(kyivSec);
+  document.getElementById('clockDisplay').textContent = formatGameClock(gameSec);
+}
+
+updateKyivClock();
+setInterval(updateKyivClock, 1000);
+</script>
+</body>
+</html>
